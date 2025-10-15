@@ -92,6 +92,35 @@ async getUser (id) {
   }
 }
 
+  async getAlluser(){
+    const checkUser = await User.find()
+    return { 
+      status: "success",
+      message: "ok" ,
+      data: checkUser
+    }
+  }
+
+
+
+  async deleteUser(id){
+    const Ktr = await User.findById({
+      _id : id
+    })
+    if(!Ktr) {
+      return {
+        message: "can not find user"
+      }
+    }
+    const deleteId = await User.findByIdAndDelete(Ktr)
+
+    return {
+      status : "delete user ok",
+      message : "ok",
+      data : deleteId
+    }
+  }
+
 }
 
 module.exports = UserService;

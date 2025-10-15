@@ -1,3 +1,4 @@
+const { json } = require('body-parser');
 const UserService = require('../Service/UserService');
 
 // Controller
@@ -78,7 +79,31 @@ class UserController {
     }
   }
 
+  async getAlluser (req, res) {
+    try {
+      const result = await this.userService.getAlluser()
+      return res.status(200).json(result)
+    } catch (error) {
+      return res.status(500),json({
+        message : error.message || "loi server"
+      })
+    }
+  }
   
+  async deleteUser(req,res){
+    try {
+      const Data = req.params.id
+      if(!Data){
+        return res.status(404).json({message: "can not finr id user"})
+      }
+      const result = await this.userService.deleteUser(Data)
+      return res.status(200).json(result)
+    } catch (error) {
+      return res.status(500).json({
+        message: error.message|| "loi server"
+      })
+    }
+  }
 
 }
 
