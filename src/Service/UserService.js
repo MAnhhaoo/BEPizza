@@ -1,60 +1,64 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/UserModels');
+const { Access_token } = require('./JwtService');
 
 class UserService {
-  async createUser(newUser) {
-    // Kiểm tra email đã tồn tại chưa
-    const { name, email, password, phone } = newUser
-    const checkMail = await User.findOne({ email: email });
-    if (checkMail) {
-      return {
-        status: 'error',
-        message: 'Email đã được sử dụng',
-      };
-    }
+async createUser(newUser) {
+  const { email, password } = newUser;
 
-    // Mã hóa password
-    const hashedPassword = bcrypt.hashSync(password, 10);
-
-    // Tạo user
-    const CreatUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
-    });
-
-    return {
-      status: 'success',
-      message: 'Tạo user thành công',
-      data: CreatUser,
-    };
+  const checkMail = await User.findOne({ email });
+  if (checkMail) {
+    throw new Error("Email đã được sử dụng");
   }
 
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
-  async loginUser(logindata){
-    const {email , password} = logindata
-    const user = await User.findOne({
-        email: email
-    })
-    if(!user){
-        return {
-            message: "don't have email"
-        }
-    }
-    const isPass = await bcrypt.compare(password , user.password )
-    if(!isPass){
-        return {
-            status : "error",
-            message: "pass wrong"
-        }
-    }
-    return {
-        status : "success",
-        message :"dang nhap thanh cong",
-        
-    }
+  const createdUser = await User.create({
+    email,
+    password: hashedPassword,
+  });
+
+  return {
+    status: "success",
+    message: "Đăng ký thành công",
+    data: createdUser,
+  };
+}
+
+
+
+ async loginUser(logindata) { 
+  const { email, password } = logindata;
+  const user = await User.findOne({ email: email });
+
+  if (!user) {
+    throw new Error("Email không tồn tại!");
   }
+
+  const isPass = await bcrypt.compare(password, user.password);
+  if (!isPass) {
+    throw new Error("Sai mật khẩu!");
+  }
+
+  const access_token = await Access_token({
+    _id: user.id,
+    isAdmin: user.isAdmin
+  });
+
+  // ✅ Trả về thêm thông tin user
+  return {
+    status: "success",
+    message: "Đăng nhập thành công!",
+    access_token: access_token,
+    user: {
+      id: user._id,
+      email: user.email,
+      name: user.name,       // nếu có cột name
+      isAdmin: user.isAdmin,
+    }
+  };
+}
+
 
 async updateUser (id , Data) {
     const CheckUser = await User.findOne({
