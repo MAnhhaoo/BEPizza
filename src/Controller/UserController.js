@@ -7,41 +7,41 @@ class UserController {
     this.userService = userService;
   }
 
-  async createUser(req, res) {
-    try {
-      const { name, email, password, phone } = req.body;
+ async createUser(req, res) {
+  try {
+    const { email, password } = req.body;
 
-      if (!name || !email || !password || !phone) {
-        return res.status(400).json({ message: 'điền không đầy đủ' });
-      }
-
-      const result = await this.userService.createUser(req.body);
-      return res.status(200).json(result);
-    } catch (error) {
-      return res.status(500).json({ message: error.message || 'Lỗi server' });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Thiếu email hoặc mật khẩu" });
     }
+
+    const result = await this.userService.createUser(req.body);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ message: error.message || "Lỗi server" });
   }
+}
 
-  async loginUser (req,res) {
-    try {
-        const {email , password } = req.body
-        if(!email || !password){
-            return res.status(400).json({
-                message : "điền thiếu trường dữ liệu"
-            })
-        }
 
-        const result = await this.userService.loginUser(req.body)
-        return res.status(200).json(
-            result
-        )
-        
-    } catch (error) {
-        return res.status(500).json({
-            message : error.message || "Lỗi server"
-        })
+ async loginUser(req, res) {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "điền thiếu trường dữ liệu"
+      });
     }
+
+    const result = await this.userService.loginUser(req.body);
+    return res.status(200).json(result);
+
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Lỗi server"
+    });
   }
+}
+
 
   async updateUser (req, res) {
     try {
