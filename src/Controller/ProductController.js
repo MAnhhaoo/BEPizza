@@ -1,4 +1,5 @@
 const ProductService = require("../Service/ProductService")
+const upload = require("../middleware/uploads");
 class ProductController {
     constructor(ProductService){
         this.ProductService=ProductService
@@ -7,9 +8,9 @@ async getAllProduct (req, res) {
   try {
     let { limit, page, sort, filter } = req.query;
 
-    // 👉 Gán giá trị mặc định nếu không truyền
-    limit = Number(limit) || 10;
-    page = Number(page) || 0;
+    // // 👉 Gán giá trị mặc định nếu không truyền
+    // limit = Number(limit) || 10;
+    // page = Number(page) || 0;
 
     // 👉 Parse sort và filter nếu có (vì khi gửi query từ FE nó sẽ là string)
     if (filter) {
@@ -39,23 +40,36 @@ async getAllProduct (req, res) {
 }
 
 
-    async createProduct (req ,res) {
-        try {
-            const {name , image , type , price } = req.body ;
-            if(!name || !image || !type || !price){
-                return res.status(404).json({
-                    message : "thiếu 1 số trường "
-                })
-            }
-            const result = await this.ProductService.createProduct(req.body)
-            return res.status(200).json(result)
-            
-        } catch (error) {
-            return res.status(500).json({
-                message: error.message || "loi server"
-            })
-        }
+    async createProduct(req, res) {
+  try {
+    const { name, type, price } = req.body;
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
+
+    // Kiểm tra thiếu trường
+    if (!name || !type || !price || !image) {
+      return res.status(400).json({
+        message: "Thiếu một số trường bắt buộc (name, type, price, image)",
+      });
     }
+
+    // Tạo sản phẩm
+    const result = await this.ProductService.createProduct({
+      name,
+      type,
+      price,
+      image,
+    });
+
+    return res.status(200).json({
+      message: "Tạo sản phẩm thành công",
+      data: result,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Lỗi server",
+    });
+  }
+}
 
     async getProductbyId (req , res) {
         try {

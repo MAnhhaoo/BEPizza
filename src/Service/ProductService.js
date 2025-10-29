@@ -1,5 +1,6 @@
 const Product = require("../models/ProductModel")
 class ProductService {
+  
 async getAllProduct(limit, page, sort, filter) {
   const totalProduct = await Product.countDocuments();
 
@@ -55,46 +56,48 @@ async getAllProduct(limit, page, sort, filter) {
   };
 }
 
-    async createProduct(newProduct){
-        const {name , image , type , price } = newProduct
-         if(!name || !image || !type || !price){
-                return res.status(404).json({
-                    message : "thiếu 1 số trường "
-                })
-            }
-            const checkProduct = await Product.findOne({
-                name
-            })
-            if(checkProduct){
-                return {
-                    status : 404,
-                    message : "san pham da co roi"
-                }
-            }
-            const addProduct = await Product.create({
-                 name , image , type , price 
-            })
-        return{
-            message: "ok",
-            data: addProduct
-        }
-    }
-    async getProductbyId(id){
-        const checkProduct = await Product.findById({
-            _id : id
-        })
-        if(!checkProduct){
-            return {
-                status : 404,
-                message: "can not find product"
-            }
-        }
+   async createProduct(newProduct) {
+  const { name, image, type, price } = newProduct;
 
-        return {
-            message: "ok",
-            data : checkProduct
-        }
-    }
+  if (!name || !image || !type || !price) {
+    return {
+      status: 400,
+      message: "Thiếu một số trường bắt buộc",
+    };
+  }
+
+  const checkProduct = await Product.findOne({ name });
+  if (checkProduct) {
+    return {
+      status: 400,
+      message: "Sản phẩm đã tồn tại",
+    };
+  }
+
+  const addProduct = await Product.create({ name, image, type, price });
+
+  return {
+    status: 200,
+    message: "Tạo sản phẩm thành công",
+    data: addProduct,
+  };
+}
+
+ async getProductbyId(id) {
+  const checkProduct = await Product.findById(id); // ✅ chỉ truyền id, không phải object
+  if (!checkProduct) {
+    return {
+      status: 404,
+      message: "Không tìm thấy sản phẩm",
+    };
+  }
+
+  return {
+    message: "ok",
+    data: checkProduct,
+  };
+}
+
     async deleteProduct (id) {
         const checkID = await Product.findById({
             _id : id
