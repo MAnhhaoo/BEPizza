@@ -61,9 +61,9 @@ async createUser(newUser) {
 
 
 async updateUser (id , Data) {
-    const CheckUser = await User.findOne({
-        _id : id
-    })
+    const CheckUser = await User.findById(
+        id
+    )
     if(!CheckUser){
         return {
             message : "can not find id"

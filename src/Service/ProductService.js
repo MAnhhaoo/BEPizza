@@ -56,32 +56,61 @@ async getAllProduct(limit, page, sort, filter) {
   };
 }
 
-   async createProduct(newProduct) {
-  const { name, image, type, price } = newProduct;
+async createProduct(newProduct) {
+ // 🌟 BƯỚC 1: Thêm 'description' vào danh sách trích xuất từ object newProduct
+ const { name, image, type, price, description } = newProduct; 
 
-  if (!name || !image || !type || !price) {
-    return {
-      status: 400,
-      message: "Thiếu một số trường bắt buộc",
-    };
-  }
+ // Lưu ý: description không bắt buộc trong Schema của bạn, nên ta không cần check ở if(!...)
 
-  const checkProduct = await Product.findOne({ name });
-  if (checkProduct) {
-    return {
-      status: 400,
-      message: "Sản phẩm đã tồn tại",
-    };
-  }
-
-  const addProduct = await Product.create({ name, image, type, price });
-
+ // Kiểm tra các trường BẮT BUỘC
+ if (!name || !image || !type || !price) {
   return {
-    status: 200,
-    message: "Tạo sản phẩm thành công",
-    data: addProduct,
+   status: 400,
+   message: "Thiếu một số trường bắt buộc (name, image, type, price)",
   };
+ }
+
+ const checkProduct = await Product.findOne({ name });
+ if (checkProduct) {
+  return {
+   status: 400,
+   message: "Sản phẩm đã tồn tại",
+  };
+ }
+
+ // 🌟 BƯỚC 2: Thêm 'description' vào đối tượng khi tạo trong database
+ const addProduct = await Product.create({ 
+  name, 
+  image, 
+  type, 
+  price,
+  description, // <--- THÊM description VÀO ĐÂY
+ });
+
+ return {
+  status: 200,
+  message: "Tạo sản phẩm thành công",
+  data: addProduct,
+ };
 }
+
+// ProductService (Backend) - Nơi chứa các hàm tương tác với Product Model
+// ...
+async getAllTypes() {
+    // SỬ DỤNG AGGREGATION để lấy tất cả các giá trị duy nhất (distinct) của trường 'type'
+    const uniqueTypes = await Product.distinct('type'); 
+    
+    // uniqueTypes sẽ là mảng: ['Pizza', 'Drink', 'Appetizer', ...]
+    // Trả về định dạng mà frontend mong đợi
+    const mappedData = uniqueTypes.map(type => ({ name: type })); 
+
+    return {
+        message: "ok",
+        // Trả về mảng các object có trường 'name' để Frontend dễ xử lý
+        data: mappedData, 
+    };
+}
+// ...
 
  async getProductbyId(id) {
   const checkProduct = await Product.findById(id); // ✅ chỉ truyền id, không phải object

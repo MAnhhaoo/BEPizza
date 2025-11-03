@@ -1,39 +1,38 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
-const OrderSchema = mongoose.Schema (
+const orderSchema = new mongoose.Schema({
+  orderItems: [
     {
-        // vì sản phẩm có thể mua 2 3 cái nên phải cho vô cái mảng 
-        
-        orderItem : [
-            {
-                name : {type : String , required: true},
-                amount : {type : Number , required : true},
-                image : {type : String , required : true},
-                price : {type : Number , required : true},
-                product : {
-                    // giống như là join bảng 
-                    type : mongoose.Schema.Types.ObjectId,
-                    ref : 'Product',
-                    required : true
-                },
-            },
-        ] , 
-        shippingAddress : {
-         fullName : {type : String , required : true},   
-         address : {type : String , required : true},   
-         city : {type : String , required : true},   
-         phone : {type : Number , required : true},   
-        },
-        itemPrice : {type : Number , required : true},
-        shippingPrice : {type : Number , required : true},
-        taxPrice : {type : Number , required: true},
-        totalPrice : {type : Number , required: true},
-        user : {type : mongoose.Schema.Types.ObjectId, ref : 'User', required: true},
-        isPaid : {type : Boolean , required: true},
-        isPaid : {type : Date },
-        isDelivered : {type : Date , default: false },
-        deliveredAt : {type : Date },
-    }
-);
-const Order = mongoose.model( "Order",OrderSchema )
-module.exports = Order
+      name: { type: String, required: true },
+      qty: { type: Number, required: true },
+      price: { type: Number, required: true },
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
+    },
+  ],
+  shippingAddress: {
+    address: { type: String },
+    city: { type: String },
+    postalCode: { type: String },
+    country: { type: String },
+  },
+  itemPrice: { type: Number, required: true },
+  shippingPrice: { type: Number, required: true },
+  taxPrice: { type: Number, required: true },
+  totalPrice: { type: Number, required: true },
+  status: {
+    type: String,
+    enum: ["Chờ xác nhận", "Đã xác nhận", "Đang giao", "Giao thành công" , "Giao thất bại" , "Hủy đơn"],
+    default: "Chờ xác nhận",
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false, // ✅ để test không cần login
+  },
+}, { timestamps: true });
+
+module.exports = mongoose.model("Order", orderSchema);

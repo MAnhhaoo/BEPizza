@@ -1,17 +1,19 @@
-const mongoose = require ('mongoose')
-const productSchema = new mongoose.Schema (
-    {
-        name: {type : String , unique: true ,required: true},
-        image: {type: String , required: true},
-        type :{type: String , required: true},
-        price: {type : Number , default: false },
-        countInStock : {type: Number },
-        rating : {type: Number },
-        description : {type : String },
-    } , {
-        timestamps : true
-    }
-    
+const mongoose = require("mongoose");
+
+const productSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    description: { type: String },
+    image: { type: String },
+    category: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "Category",   // Liên kết đến CategoryModel
+      required: false 
+    },
+  },
+  { timestamps: true }
 );
-const Product = mongoose.model("Product" , productSchema);
-module.exports = Product
+
+const Product = mongoose.model("Product", productSchema);
+module.exports = Product;
