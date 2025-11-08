@@ -1,61 +1,57 @@
 const Product = require("../models/ProductModel")
 class ProductService {
   
+// File: ProductService.js (Chức năng getAllProduct - Server side)
+// Cần import Product model (ví dụ: import Product from '../models/ProductModel.js';)
+
 async getAllProduct(limit, page, sort, filter) {
-  const totalProduct = await Product.countDocuments();
+    
+    let findQuery = {}; // Khởi tạo object tìm kiếm MongoDB
 
-  // ✅ Nếu có filter
-  if (filter && Array.isArray(filter) && filter.length === 2) {
-    const [label, value] = filter;
+    // ✅ XỬ LÝ FILTER & TÌM KIẾM THEO TÊN
+    if (filter && Array.isArray(filter) && filter.length === 2) {
+        const [label, value] = filter;
 
-    const checkProduct = await Product.find({
-      [label]: { $regex: value, $options: "i" }
-    })
-      .limit(limit)
-      .skip(page * limit);
+        // Nếu label là 'name', sử dụng $regex để tìm kiếm không phân biệt chữ hoa/thường
+        if (label === 'name') {
+            findQuery = {
+                [label]: { $regex: value, $options: "i" }
+            };
+        } else {
+            // Xử lý các filter khác (ví dụ: type, price)
+            findQuery = {
+                [label]: value
+            };
+        }
+    }
+    
+    // Đếm tổng số sản phẩm THỰC TẾ sau khi áp dụng filter/tìm kiếm để phân trang
+    const totalFilteredProduct = await Product.countDocuments(findQuery);
+
+    let checkProduct = Product.find(findQuery);
+    
+    // ✅ Áp dụng Sort (nếu có)
+    if (sort && Array.isArray(sort) && sort.length === 2) {
+        const objectSort = {};
+        objectSort[sort[0]] = sort[1];
+        checkProduct = checkProduct.sort(objectSort);
+    }
+    
+    // Áp dụng limit và skip
+    checkProduct = checkProduct
+        .limit(limit)
+        .skip(page * limit);
+
+    const data = await checkProduct;
 
     return {
-      message: "ok",
-      data: checkProduct,
-      total: totalProduct,
-      page: page + 1,
-      totalPage: Math.ceil(totalProduct / limit),
+        message: "ok",
+        data: data,
+        total: totalFilteredProduct, // Tổng số sản phẩm sau khi tìm kiếm/filter
+        page: page + 1,
+        totalPage: Math.ceil(totalFilteredProduct / limit),
     };
-  }
-
-  // ✅ Nếu có sort
-  if (sort && Array.isArray(sort) && sort.length === 2) {
-    const objectSort = {};
-    objectSort[sort[0]] = sort[1];
-
-    const checkProduct = await Product.find()
-      .limit(limit)
-      .skip(page * limit)
-      .sort(objectSort);
-
-    return {
-      message: "ok",
-      data: checkProduct,
-      total: totalProduct,
-      page: page + 1,
-      totalPage: Math.ceil(totalProduct / limit),
-    };
-  }
-
-  // ✅ Không có filter hoặc sort
-  const checkProduct = await Product.find()
-    .limit(limit)
-    .skip(page * limit);
-
-  return {
-    message: "ok",
-    data: checkProduct,
-    total: totalProduct,
-    page: page + 1,
-    totalPage: Math.ceil(totalProduct / limit),
-  };
 }
-
 async createProduct(newProduct) {
  // 🌟 BƯỚC 1: Thêm 'description' vào danh sách trích xuất từ object newProduct
  const { name, image, type, price, description } = newProduct; 

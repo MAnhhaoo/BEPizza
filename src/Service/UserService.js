@@ -96,15 +96,32 @@ async getUser (id) {
   }
 }
 
-  async getAlluser(){
-    const checkUser = await User.find()
-    return { 
-      status: "success",
-      message: "ok" ,
-      data: checkUser
-    }
-  }
+  // File: UserService.js (Chức năng getAlluser - Server side)
+// Cần import User model (ví dụ: import User from '../models/UserModel.js';)
 
+async getAlluser(search = '') { // ✅ Chấp nhận tham số search
+    let findQuery = {};
+    
+    // 🌟 LOGIC TÌM KIẾM
+    if (search) {
+        const searchRegex = new RegExp(search, 'i'); // Tìm kiếm không phân biệt hoa/thường
+       findQuery = {
+    $or: [
+        { name: { $regex: searchRegex } },
+        { email: { $regex: searchRegex } },
+    ]
+};
+    }
+    
+    // ✅ Áp dụng truy vấn tìm kiếm (findQuery có thể là {} nếu không có search)
+    const checkUser = await User.find(findQuery);
+
+    return { 
+        status: "success",
+        message: "ok" ,
+        data: checkUser
+    };
+}
 
 
   async deleteUser(id){
@@ -123,6 +140,28 @@ async getUser (id) {
       message : "ok",
       data : deleteId
     }
+  }
+
+   async updateUserStatus(userId, isBlocked) {
+    const user = await User.findById(userId);
+    if (!user) {
+      return { success: false, message: "Không tìm thấy người dùng" };
+    }
+
+    user.isBlocked = isBlocked;
+    await user.save();
+
+    return {
+      success: true,
+      message: isBlocked ? "Đã khóa tài khoản người dùng" : "Đã mở khóa tài khoản người dùng",
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        isBlocked: user.isBlocked
+      }
+    };
   }
 
 }

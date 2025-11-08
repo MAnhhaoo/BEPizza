@@ -79,16 +79,24 @@ class UserController {
     }
   }
 
-  async getAlluser (req, res) {
+// File: UserController.js (Chức năng getAlluser)
+
+async getAlluser (req, res) {
     try {
-      const result = await this.userService.getAlluser()
-      return res.status(200).json(result)
+        // ✅ Lấy tham số 'search' từ query
+        const { search } = req.query; 
+
+        // ✅ Chuyển tham số search vào service
+        const result = await this.userService.getAlluser(search); 
+        
+        return res.status(200).json(result);
     } catch (error) {
-      return res.status(500),json({
-        message : error.message || "loi server"
-      })
+        console.error("Lỗi server:", error);
+        return res.status(500).json({
+            message : error.message || "Lỗi server"
+        });
     }
-  }
+}
   
   async deleteUser(req,res){
     try {
@@ -105,6 +113,31 @@ class UserController {
     }
   }
 
+
+  
+async updateUserStatus(req, res) {
+  try {
+    const userId = req.params.id;
+    const { isBlocked } = req.body; // true = khóa, false = mở
+
+    if (!userId) {
+      return res.status(400).json({ message: "Thiếu ID người dùng" });
+    }
+
+    if (typeof isBlocked !== "boolean") {
+      return res.status(400).json({ message: "Thiếu hoặc sai kiểu dữ liệu isBlocked (true/false)" });
+    }
+
+    const result = await this.userService.updateUserStatus(userId, isBlocked);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("❌ Lỗi updateUserStatus:", error);
+    return res.status(500).json({ message: error.message || "Lỗi server" });
+  }
 }
+
+}
+
+
 
 module.exports = new UserController(new (require('../Service/UserService'))());

@@ -1,6 +1,25 @@
 const Order = require("../models/OrderModel");
 
 class OrderService {
+
+  // 🟦 Lấy danh sách đơn hàng theo userId
+    async getOrdersByUserId(userId) {
+        try {
+            if (!userId) {
+                return { status: 400, message: "Thiếu ID người dùng." };
+            }
+
+            // Tìm tất cả đơn hàng có trường user là userId
+            const orders = await Order.find({ user: userId })
+                .populate("user", "name email") // Lấy thông tin cơ bản của người dùng
+                .sort({ createdAt: -1 }); // Sắp xếp đơn hàng mới nhất lên đầu
+
+            return { status: 200, data: orders };
+        } catch (error) {
+            console.error("LỖI KHI LẤY ĐƠN HÀNG THEO ID NGƯỜI DÙNG:", error);
+            return { status: 500, message: "Lỗi máy chủ nội bộ không xác định." };
+        }
+    }
   // 🟢 Tạo đơn hàng
   async createOrder(data, userId) {
     try {

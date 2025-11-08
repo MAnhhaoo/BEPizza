@@ -79,6 +79,26 @@ async createOrder(req, res) {
     }
   }
 
+  async getOrdersByUserId(req, res) {
+        try {
+            // userId được lấy từ middleware authUser
+            const userId = req.user?._id; 
+
+            if (!userId) {
+                return res.status(401).json({
+                    status: 401,
+                    message: "Lỗi xác thực: Vui lòng đăng nhập hoặc token đã hết hạn."
+                });
+            }
+
+            const result = await this.orderService.getOrdersByUserId(userId);
+            return res.status(result.status).json(result);
+        } catch (error) {
+            console.error("Lỗi Controller lấy đơn hàng theo ID:", error);
+            return res.status(500).json({ message: "Lỗi server nội bộ" });
+        }
+    }
+
 }
 
 module.exports = new OrderController(new OrderService());

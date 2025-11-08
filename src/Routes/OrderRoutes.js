@@ -17,5 +17,7 @@ router.delete("/delete/:id", (req, res) => orderController.deleteOrder(req, res)
 
 router.get("/getDetailOrder/:id", (req, res) => orderController.getDeatilOrder(req, res));
 
+// 🟦 Người dùng đăng nhập mới được xem đơn hàng của mình
+router.get("/getMyOrders", authUser, (req, res) => orderController.getOrdersByUserId(req, res)); 
 
 module.exports = router;

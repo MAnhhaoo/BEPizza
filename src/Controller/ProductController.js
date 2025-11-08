@@ -4,39 +4,48 @@ class ProductController {
     constructor(ProductService){
         this.ProductService=ProductService
     }
+// File: ProductController.js (Chức năng getAllProduct)
+
 async getAllProduct (req, res) {
-  try {
-    let { limit, page, sort, filter } = req.query;
+    try {
+        // Lấy tất cả các query parameters, bao gồm name
+        let { limit, page, sort, filter, name } = req.query; // ✅ THÊM name
 
-    // // 👉 Gán giá trị mặc định nếu không truyền
-    // limit = Number(limit) || 10;
-    // page = Number(page) || 0;
+        // Gán giá trị mặc định nếu không truyền
+        limit = Number(limit) || 10;
+        page = Number(page) || 0;
 
-    // 👉 Parse sort và filter nếu có (vì khi gửi query từ FE nó sẽ là string)
-    if (filter) {
-      try {
-        filter = JSON.parse(filter);
-      } catch (e) {
-        filter = null;
-      }
+        // 👉 Parse sort và filter nếu có
+        if (filter) {
+            try {
+                filter = JSON.parse(filter);
+            } catch (e) {
+                filter = null;
+            }
+        }
+        
+        if (sort) {
+            try {
+                sort = JSON.parse(sort);
+            } catch (e) {
+                sort = null;
+            }
+        }
+        
+        // 🌟 XỬ LÝ TÌM KIẾM THEO TÊN: Gán name vào filter để Service xử lý
+        if (name) {
+            // Định dạng filter thành [label, value]
+            filter = ["name", name]; 
+        }
+
+        const result = await this.ProductService.getAllProduct(limit, page, sort, filter);
+        return res.status(200).json(result);
+    } catch (error) {
+        console.error("Lỗi server:", error);
+        return res.status(500).json({
+            message: error.message || "Lỗi server"
+        });
     }
-
-    if (sort) {
-      try {
-        sort = JSON.parse(sort);
-      } catch (e) {
-        sort = null;
-      }
-    }
-
-    const result = await this.ProductService.getAllProduct(limit, page, sort, filter);
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("Lỗi server:", error);
-    return res.status(500).json({
-      message: error.message || "Lỗi server"
-    });
-  }
 }
 
 
