@@ -1,3 +1,5 @@
+// File: backend/models/OrderModel.js
+
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
@@ -14,15 +16,20 @@ const orderSchema = new mongoose.Schema({
     },
   ],
   shippingAddress: {
-    address: { type: String },
-    city: { type: String },
+    fullName: { type: String, required: true }, // 🟢 THÊM TÊN NGƯỜI NHẬN
+    phone: { type: String, required: true }, // 🟢 THÊM SĐT
+    address: { type: String, required: true }, // Địa chỉ đầy đủ
+    city: { type: String, required: true }, // Tỉnh/Thành phố
     postalCode: { type: String },
-    country: { type: String },
+    country: { type: String, default: "Việt Nam" },
   },
   itemPrice: { type: Number, required: true },
   shippingPrice: { type: Number, required: true },
   taxPrice: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
+  
+  paymentMethod: { type: String, enum: ["COD", "Bank Transfer"], default: "COD" }, // 🟢 THÊM PHƯƠNG THỨC TT
+
   status: {
     type: String,
     enum: ["Chờ xác nhận", "Đã xác nhận", "Đang giao", "Giao thành công" , "Giao thất bại" , "Hủy đơn"],
@@ -31,7 +38,7 @@ const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: false, // ✅ để test không cần login
+    required: false, 
   },
 }, { timestamps: true });
 

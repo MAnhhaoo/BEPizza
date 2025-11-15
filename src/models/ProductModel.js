@@ -6,10 +6,11 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     description: { type: String },
     image: { type: String },
-    category: { 
-      type: mongoose.Schema.Types.ObjectId, 
-      ref: "Category",   // Liên kết đến CategoryModel
-      required: false 
+    rating: { type: Number, default: 0, min: 0, max: 5 }, 
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category", 
+      required: false,
     },
   },
   { timestamps: true }

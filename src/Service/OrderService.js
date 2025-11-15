@@ -20,56 +20,53 @@ class OrderService {
             return { status: 500, message: "Lỗi máy chủ nội bộ không xác định." };
         }
     }
-  // 🟢 Tạo đơn hàng
-  async createOrder(data, userId) {
-    try {
-      // 🟢 DÒNG CODE NÀY PHẢI ĐẶT TRONG KHỐI TRY VÀ SỬ DỤNG data ĐƯỢC TRUYỀN VÀO
-      const {
-        orderItems, // KHAI BÁO BIẾN orderItems RÕ RÀNG
-        shippingAddress,
-        itemPrice,
-        shippingPrice,
-        taxPrice,
-        totalPrice,
-      } = data;
+ async createOrder(data, userId) {
+        try {
+            const {
+                orderItems,
+                shippingAddress,
+                itemPrice,
+                shippingPrice,
+                taxPrice,
+                totalPrice,
+                paymentMethod, // 🟢 DESTUCTURE TRƯỜNG MỚI
+            } = data;
 
-      if (!orderItems || orderItems.length === 0) {
-        return { status: 400, message: "Không có sản phẩm trong đơn hàng" };
-      }
-      
-      // Kiểm tra userId (dù Controller đã kiểm tra, thêm vào đây cho chắc chắn hơn)
-      if (!userId) {
-          return { status: 401, message: "Lỗi hệ thống: Thiếu ID người dùng." };
-      }
+            if (!orderItems || orderItems.length === 0) {
+                return { status: 400, message: "Không có sản phẩm trong đơn hàng" };
+            }
+            
+            if (!userId) {
+                return { status: 401, message: "Lỗi hệ thống: Thiếu ID người dùng." };
+            }
 
-      const order = new Order({
-        orderItems,
-        shippingAddress,
-        itemPrice,
-        shippingPrice,
-        taxPrice,
-        totalPrice,
-        user: userId, // Gán userId từ token
-      });
+            const order = new Order({
+                orderItems,
+                shippingAddress,
+                itemPrice,
+                shippingPrice,
+                taxPrice,
+                totalPrice,
+                paymentMethod, // 🟢 GÁN VÀO MODEL
+                user: userId, 
+            });
 
-      const createdOrder = await order.save();
-      return { status: 201, message: "Tạo đơn hàng thành công", data: createdOrder };
-      
-    } catch (error) {
-      console.error("LỖI KHI LƯU ĐƠN HÀNG (MongoDB):", error); 
-        
-      // 👉 Xử lý lỗi chi tiết từ MongoDB
-      if (error.name === 'ValidationError') {
-          return { status: 400, message: `Lỗi dữ liệu: Thiếu thông tin bắt buộc hoặc sai định dạng. Chi tiết: ${error.message}` };
-      }
-      if (error.name === 'CastError') {
-          return { status: 400, message: "Lỗi dữ liệu: ID sản phẩm hoặc ID người dùng không hợp lệ (CastError)." };
-      }
+            const createdOrder = await order.save();
+            return { status: 201, message: "Tạo đơn hàng thành công", data: createdOrder };
+            
+        } catch (error) {
+            console.error("LỖI KHI LƯU ĐƠN HÀNG (MongoDB):", error); 
+            // 👉 Xử lý lỗi chi tiết từ MongoDB
+            if (error.name === 'ValidationError') {
+                return { status: 400, message: `Lỗi dữ liệu: Thiếu thông tin bắt buộc hoặc sai định dạng. Chi tiết: ${error.message}` };
+            }
+            if (error.name === 'CastError') {
+                return { status: 400, message: "Lỗi dữ liệu: ID sản phẩm hoặc ID người dùng không hợp lệ (CastError)." };
+            }
 
-      // Trả về lỗi 500 nếu là lỗi khác
-      return { status: 500, message: "Lỗi máy chủ nội bộ không xác định." };
+            return { status: 500, message: "Lỗi máy chủ nội bộ không xác định." };
+        }
     }
-  }
 
   // 🔵 Lấy tất cả đơn hàng
   async getAllOrders() {

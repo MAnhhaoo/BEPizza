@@ -7,7 +7,10 @@ const CategoryController = require("../Controller/CategoryController");
 
 // PRODUCT
 router.post("/creatProduct", upload.single("image"), ProductController.createProduct.bind(ProductController));
+// File: ProductRouter.js (Đã đúng)
+// ...
 router.get("/getAllProduct", ProductController.getAllProduct.bind(ProductController));
+// ...
 router.get("/getAllTypes", ProductController.getAllTypes.bind(ProductController));
 router.get("/getProduct/:id", ProductController.getProductbyId.bind(ProductController));
 router.delete("/deleteProduct/:id", ProductController.deleteProduct.bind(ProductController));
