@@ -16,10 +16,10 @@ const orderSchema = new mongoose.Schema({
     },
   ],
   shippingAddress: {
-    fullName: { type: String, required: true }, // 🟢 THÊM TÊN NGƯỜI NHẬN
-    phone: { type: String, required: true }, // 🟢 THÊM SĐT
-    address: { type: String, required: true }, // Địa chỉ đầy đủ
-    city: { type: String, required: true }, // Tỉnh/Thành phố
+    fullName: { type: String, required: true }, 
+    phone: { type: String, required: true }, 
+    address: { type: String, required: true }, 
+    city: { type: String, required: true }, 
     postalCode: { type: String },
     country: { type: String, default: "Việt Nam" },
   },
@@ -28,7 +28,7 @@ const orderSchema = new mongoose.Schema({
   taxPrice: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
   
-  paymentMethod: { type: String, enum: ["COD", "Bank Transfer"], default: "COD" }, // 🟢 THÊM PHƯƠNG THỨC TT
+  paymentMethod: { type: String, enum: ["COD", "Bank Transfer"], default: "COD" }, 
 
   status: {
     type: String,

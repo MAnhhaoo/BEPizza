@@ -33,38 +33,54 @@ class UserService {
     }
 
     // 2. Đăng nhập người dùng
-    async loginUser(logindata) {
-        const { email, password } = logindata;
-        const user = await User.findOne({ email: email });
+   // ... (các đoạn code khác)
 
-        if (!user) {
-            // SỬA: Trả về object để Controller xử lý trạng thái lỗi
-            return { status: "error", message: "Email không tồn tại!" };
-        }
+// 2. Đăng nhập người dùng
+async loginUser(logindata) {
+    const { email, password } = logindata;
+    const user = await User.findOne({ email: email });
 
-        // LƯU Ý: bcrypt.compare là hàm async, nên dùng await
-        const isPass = await bcrypt.compare(password, user.password); 
-        if (!isPass) {
-            return { status: "error", message: "Sai mật khẩu!" };
-        }
+    if (!user) {
+        return { status: "error", message: "Email không tồn tại!" };
+    }
 
-        const access_token = await Access_token({
-            _id: user.id,
-            isAdmin: user.isAdmin
-        });
-
-        return {
-            status: "success",
-            message: "Đăng nhập thành công!",
-            access_token: access_token,
-            user: {
-                id: user._id,
-                email: user.email,
-                name: user.name,
-                isAdmin: user.isAdmin,
-            }
+    // 🛑 BỔ SUNG: Kiểm tra trạng thái bị khóa
+    if (user.isBlocked) {
+        return { 
+            status: "error", 
+            message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên." 
         };
     }
+    // 🛑 KẾT THÚC BỔ SUNG
+
+    // LƯU Ý: bcrypt.compare là hàm async, nên dùng await
+    const isPass = await bcrypt.compare(password, user.password); 
+    if (!isPass) {
+        return { status: "error", message: "Sai mật khẩu!" };
+    }
+
+    // ... (logic tạo access_token và trả về thành công)
+    const access_token = await Access_token({
+        _id: user.id,
+        isAdmin: user.isAdmin
+    });
+
+    return {
+        status: "success",
+        message: "Đăng nhập thành công!",
+        access_token: access_token,
+        user: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            isAdmin: user.isAdmin,
+            // Thêm isBlocked vào response (tùy chọn)
+            isBlocked: user.isBlocked 
+        }
+    };
+}
+
+// ... (các đoạn code khác)
 
     // 3. Cập nhật thông tin người dùng
     async updateUser(id, Data) {

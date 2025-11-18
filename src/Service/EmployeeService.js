@@ -4,7 +4,7 @@ class EmployeeService {
     VALID_ROLES = ['sales_staff', 'kitchen_staff'];
 
     _calculateMonthlySalary(salaryPerDay) {
-        const STANDARD_WORK_DAYS = 22;
+        const STANDARD_WORK_DAYS = 30;
         return salaryPerDay * STANDARD_WORK_DAYS;
     }
 
@@ -23,7 +23,6 @@ class EmployeeService {
     }
 
     async createEmployee(data) {
-        // ✅ Đã thêm kiểm tra email
         if (!data.employeeCode || !data.fullName || !data.salaryPerDay || !data.email) {
             throw new Error('Mã NV, Họ tên, Email và Lương/ngày là bắt buộc'); 
         }

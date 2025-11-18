@@ -6,7 +6,6 @@ class ProductService {
   async getAllProduct(limit, page, sort, filter) {
     let findQuery = {}; 
 
-    // Xử lý filter và tìm kiếm
     if (filter && Array.isArray(filter) && filter.length === 2) {
       const [label, value] = filter;
 
@@ -15,7 +14,6 @@ class ProductService {
           [label]: { $regex: value, $options: "i" }
         };
       } 
-            // ✅ SỬA: Lọc theo TÊN danh mục, sau đó tìm ID để lọc trong Product Model
       else if (label === 'type') { 
                 const categoryDoc = await Category.findOne({ name: value });
                 if (categoryDoc) {
@@ -34,18 +32,16 @@ class ProductService {
 
     let checkProduct = Product.find(findQuery);
     
-    // Áp dụng Sort (nếu có)
     if (sort && Array.isArray(sort) && sort.length === 2) {
       const objectSort = {};
       objectSort[sort[0]] = sort[1];
       checkProduct = checkProduct.sort(objectSort);
     }
     
-    // Áp dụng limit và skip
     checkProduct = checkProduct
       .limit(limit)
       .skip(page * limit)
-            .populate('category', 'name'); // ✅ POPULATE để lấy tên danh mục
+            .populate('category', 'name'); 
 
     const data = await checkProduct;
 
@@ -82,7 +78,7 @@ class ProductService {
     const addProduct = await Product.create({ 
      name, 
      image, 
-     category: categoryId, // ✅ LƯU ID VÀO TRƯỜNG category
+     category: categoryId, 
      price,
      description,
      rating: Number(rating) || 0,
@@ -124,7 +120,6 @@ class ProductService {
   }
     
     async getAllTypes() {
-    // Lấy tất cả tên danh mục từ Category Model
     const uniqueTypes = await Category.find({}, { name: 1, _id: 0 }); // Chỉ lấy trường name
     
     const mappedData = uniqueTypes.map(item => ({ name: item.name })); 
@@ -135,7 +130,6 @@ class ProductService {
     };
   }
 
-    // ... (Giữ nguyên các hàm còn lại: getProductbyId, deleteProduct)
     async getProductbyId(id) {
     const checkProduct = await Product.findById(id);
     if (!checkProduct) {

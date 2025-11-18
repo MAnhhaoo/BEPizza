@@ -6,13 +6,10 @@ class ProductController {
         this.ProductService = ProductService
     }
 
-    // File: ProductController.js (Chức năng getAllProduct)
     async getAllProduct (req, res) {
         try {
-            // ✅ Bổ sung 'type' vào danh sách trích xuất từ req.query
             let { limit, page, sort, filter, name, type } = req.query; 
 
-            // Gán giá trị mặc định nếu không truyền
             limit = Number(limit) || 10;
             page = Number(page) || 0;
 
@@ -33,7 +30,6 @@ class ProductController {
                 }
             }
             
-            // 🌟 LOGIC MỚI: Ưu tiên lọc theo Type HOẶC Name và chuẩn bị filter cho Service
             if (type) {
                 filter = ["type", type]; // Lọc theo Type
             } else if (name) {

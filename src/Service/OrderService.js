@@ -1,18 +1,17 @@
 const Order = require("../models/OrderModel");
+const Review = require("../models/ReviewModel");
 
 class OrderService {
 
-  // 🟦 Lấy danh sách đơn hàng theo userId
     async getOrdersByUserId(userId) {
         try {
             if (!userId) {
                 return { status: 400, message: "Thiếu ID người dùng." };
             }
 
-            // Tìm tất cả đơn hàng có trường user là userId
             const orders = await Order.find({ user: userId })
-                .populate("user", "name email") // Lấy thông tin cơ bản của người dùng
-                .sort({ createdAt: -1 }); // Sắp xếp đơn hàng mới nhất lên đầu
+                .populate("user", "name email")
+                .sort({ createdAt: -1 });
 
             return { status: 200, data: orders };
         } catch (error) {
@@ -20,7 +19,8 @@ class OrderService {
             return { status: 500, message: "Lỗi máy chủ nội bộ không xác định." };
         }
     }
- async createOrder(data, userId) {
+
+    async createOrder(data, userId) {
         try {
             const {
                 orderItems,
@@ -29,7 +29,7 @@ class OrderService {
                 shippingPrice,
                 taxPrice,
                 totalPrice,
-                paymentMethod, // 🟢 DESTUCTURE TRƯỜNG MỚI
+                paymentMethod,
             } = data;
 
             if (!orderItems || orderItems.length === 0) {
@@ -47,16 +47,15 @@ class OrderService {
                 shippingPrice,
                 taxPrice,
                 totalPrice,
-                paymentMethod, // 🟢 GÁN VÀO MODEL
-                user: userId, 
+                paymentMethod,
+                user: userId,
             });
 
             const createdOrder = await order.save();
             return { status: 201, message: "Tạo đơn hàng thành công", data: createdOrder };
             
         } catch (error) {
-            console.error("LỖI KHI LƯU ĐƠN HÀNG (MongoDB):", error); 
-            // 👉 Xử lý lỗi chi tiết từ MongoDB
+            console.error("LỖI KHI LƯU ĐƠN HÀNG (MongoDB):", error);
             if (error.name === 'ValidationError') {
                 return { status: 400, message: `Lỗi dữ liệu: Thiếu thông tin bắt buộc hoặc sai định dạng. Chi tiết: ${error.message}` };
             }
@@ -68,70 +67,146 @@ class OrderService {
         }
     }
 
-  // 🔵 Lấy tất cả đơn hàng
-  async getAllOrders() {
-    try {
-      const orders = await Order.find().populate("user", "name email");
-      return { status: 200, data: orders };
-    } catch (error) {
-      console.error(error);
-      return { status: 500, message: "Không thể lấy danh sách đơn hàng" };
+    async getAllOrders() {
+        try {
+            const orders = await Order.find().populate("user", "name email").sort({ createdAt: -1 });
+            return { status: 200, data: orders };
+        } catch (error) {
+            console.error(error);
+            return { status: 500, message: "Không thể lấy danh sách đơn hàng" };
+        }
     }
-  }
 
-  // 🟡 Cập nhật trạng thái đơn hàng
-  async updateOrderStatus(id, status) {
-    try {
-      const validStatuses = ["Chờ xác nhận", "Đã xác nhận", "Đang giao", "Giao thành công" , "Giao thất bại" , "Hủy đơn"];
-      if (!validStatuses.includes(status)) {
-        return { status: 400, message: "Trạng thái không hợp lệ" };
-      }
 
-      const order = await Order.findById(id);
-      if (!order) return { status: 404, message: "Không tìm thấy đơn hàng" };
+async updateOrderStatus(id, status, io) {
+        try {
+            const validStatuses = ["Chờ xác nhận", "Đã xác nhận", "Đang giao", "Giao thành công", "Giao thất bại", "Hủy đơn"];
+            if (!validStatuses.includes(status)) {
+                return { status: 400, message: "Trạng thái không hợp lệ" };
+            }
 
-      order.status = status;
-      await order.save();
+            const updatedOrder = await Order.findByIdAndUpdate(
+                id,
+                { status: status },
+                { new: true } // Trả về document đã cập nhật
+            ).populate("user", "_id");
 
-      return { status: 200, message: "Cập nhật trạng thái đơn hàng thành công", data: order };
-    } catch (error) {
-      console.error(error);
-      return { status: 500, message: "Lỗi khi cập nhật đơn hàng" };
+            if (!updatedOrder) return { status: 404, message: "Không tìm thấy đơn hàng" };
+
+            //  GỬI THÔNG BÁO SOCKET.IO ĐẾN ROOM CỤ THỂ
+            if (io && updatedOrder.user && updatedOrder.user._id) {
+                const customerId = updatedOrder.user._id.toString();
+                const roomName = `customer_${customerId}`; 
+                
+                const notificationData = {
+                    orderId: updatedOrder._id.toString(),
+                    userId: customerId, 
+                    status: status,
+                };
+                
+                io.to(roomName).emit('customerNotify', notificationData); 
+                console.log(`[Socket.io] Đơn hàng ${updatedOrder._id} cập nhật thành: ${status}. Gửi tới Room: ${roomName}`);
+            }
+            
+            return { status: 200, message: "Cập nhật trạng thái đơn hàng thành công", data: updatedOrder };
+        } catch (error) {
+            console.error("LỖI KHI CẬP NHẬT ĐƠN HÀNG:", error);
+            // Bạn có thể thêm xử lý lỗi Validation Mongoose nếu muốn
+            return { status: 500, message: "Lỗi khi cập nhật đơn hàng" };
+        }
     }
-  }
 
-  // 🔴 Xóa đơn hàng
-  async deleteOrder(id) {
-    try {
-      const deleted = await Order.findByIdAndDelete(id);
-      if (!deleted) return { status: 404, message: "Không tìm thấy đơn hàng" };
-      return { status: 200, message: "Xóa đơn hàng thành công" };
-    } catch (error) {
-      console.error(error);
-      return { status: 500, message: "Lỗi khi xóa đơn hàng" };
+    async deleteOrder(id) {
+        try {
+            const deleted = await Order.findByIdAndDelete(id);
+            if (!deleted) return { status: 404, message: "Không tìm thấy đơn hàng" };
+            return { status: 200, message: "Xóa đơn hàng thành công" };
+        } catch (error) {
+            console.error(error);
+            return { status: 500, message: "Lỗi khi xóa đơn hàng" };
+        }
     }
-  }
 
- async getDeatilOrder(id) {
-    try {
-      const order = await Order.findById(id)
-        .populate("user", "name email")
-        .populate("orderItems.product", "name price image");
+    async getDeatilOrder(id) {
+        try {
+            const order = await Order.findById(id)
+                .populate("user", "name email")
+                .populate("orderItems.product", "name price image");
 
-      if (!order) {
-        return { status: 404, message: "Không tìm thấy đơn hàng" };
-      }
+            if (!order) {
+                return { status: 404, message: "Không tìm thấy đơn hàng" };
+            }
 
-      return {
-        status: 200,
-        message: "Lấy chi tiết đơn hàng thành công",
-        data: order,
-      };
-    } catch (error) {
-      console.error("❌ Lỗi khi xem chi tiết đơn hàng:", error);
-      return { status: 500, message: "Lỗi khi xem chi tiết đơn hàng" };
+            return {
+                status: 200,
+                message: "Lấy chi tiết đơn hàng thành công",
+                data: order,
+            };
+        } catch (error) {
+            console.error(" Lỗi khi xem chi tiết đơn hàng:", error);
+            return { status: 500, message: "Lỗi khi xem chi tiết đơn hàng" };
+        }
     }
-  }
+
+    async createReview({ orderId, productId, userId, rating, comment }) {
+        try {
+            // 1. Kiểm tra đơn hàng tồn tại và trạng thái
+            const order = await Order.findById(orderId).select('status orderItems user');
+            
+            if (!order) {
+                return { status: 404, message: "Không tìm thấy đơn hàng." };
+            }
+            if (order.status !== "Giao thành công") {
+                return { status: 400, message: "Chỉ có thể đánh giá đơn hàng đã 'Giao thành công'." };
+            }
+            if (order.user.toString() !== userId.toString()) {
+                return { status: 403, message: "Bạn không có quyền đánh giá đơn hàng này." };
+            }
+
+            // 2. Kiểm tra sản phẩm có trong đơn hàng không
+            const itemIndex = order.orderItems.findIndex(item => item.product.toString() === productId.toString());
+
+            if (itemIndex === -1) {
+                return { status: 404, message: "Sản phẩm không thuộc đơn hàng này." };
+            }
+            if (order.orderItems[itemIndex].isReviewed) {
+                return { status: 400, message: "Sản phẩm này đã được đánh giá cho đơn hàng này rồi." };
+            }
+            
+            // 3. Tạo Review mới
+            const review = new Review({
+                user: userId,
+                product: productId,
+                order: orderId,
+                rating: rating,
+                comment: comment,
+            });
+
+            await review.save();
+
+            // 4. Cập nhật isReviewed trong orderItems
+            order.orderItems[itemIndex].isReviewed = true;
+            await order.save();
+            
+            // 5. Cập nhật rating trung bình và số lượng review cho Product (TÙY CHỌN, CẦN Product Model)
+            /* if (Product) {
+                // Logic cập nhật product rating (Sử dụng $inc, $avg)
+            }
+            */
+
+            return { 
+                status: 201, 
+                message: "Đánh giá sản phẩm thành công.", 
+                data: review 
+            };
+        } catch (error) {
+            console.error("LỖI KHI TẠO ĐÁNH GIÁ:", error);
+            if (error.code === 11000) { // Duplicate key error (đã đánh giá rồi theo index)
+                 return { status: 400, message: "Sản phẩm đã được đánh giá cho đơn hàng này." };
+            }
+            return { status: 500, message: "Lỗi máy chủ nội bộ không xác định." };
+        }
+    }
 }
 
 module.exports = OrderService;
