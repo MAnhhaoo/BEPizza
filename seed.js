@@ -4,6 +4,8 @@ const User = require('./src/models/UserModels');
 const Category = require('./src/models/CategoryModel');
 const Product = require('./src/models/ProductModel');
 const Order = require('./src/models/OrderModel');
+const Review = require('./src/models/ReviewModel');
+const Employee = require('./src/models/EmployeeModel');
 require('dotenv').config();
 
 const connectDB = async () => {
@@ -84,6 +86,42 @@ const products = [
   }
 ];
 
+const employees = [
+  {
+    employeeCode: 'EMP001',
+    fullName: 'Nguyễn Văn A',
+    email: 'nguyen.a@bepizza.com',
+    role: 'sales_staff',
+    age: 25,
+    address: '123 Main Street, HCMC',
+    phone: '0912345678',
+    salaryPerDay: 300000,
+    hireDate: new Date('2023-01-15')
+  },
+  {
+    employeeCode: 'EMP002',
+    fullName: 'Trần Thị B',
+    email: 'tran.b@bepizza.com',
+    role: 'kitchen_staff',
+    age: 28,
+    address: '456 Elm Street, HCMC',
+    phone: '0923456789',
+    salaryPerDay: 250000,
+    hireDate: new Date('2023-02-20')
+  },
+  {
+    employeeCode: 'EMP003',
+    fullName: 'Lê Văn C',
+    email: 'le.c@bepizza.com',
+    role: 'kitchen_staff',
+    age: 30,
+    address: '789 Oak Street, HCMC',
+    phone: '0934567890',
+    salaryPerDay: 280000,
+    hireDate: new Date('2023-03-10')
+  }
+];
+
 // Hàm seed dữ liệu
 const seedData = async () => {
   try {
@@ -92,6 +130,8 @@ const seedData = async () => {
     await Category.deleteMany();
     await Product.deleteMany();
     await Order.deleteMany();
+    await Review.deleteMany();
+    await Employee.deleteMany();
     console.log('🧹 Đã xóa dữ liệu cũ');
 
     // Tạo users với password được hash
@@ -144,8 +184,39 @@ const seedData = async () => {
       totalPrice: (createdProducts[0].price * 2 + createdProducts[1].price + 50000),
       status: 'Đã xác nhận'
     };
-    await Order.create(sampleOrder);
+    const createdOrder = await Order.create(sampleOrder);
     console.log('📦 Đã tạo order mẫu');
+
+    // Tạo reviews mẫu
+    const reviews = [
+      {
+        user: createdUsers[1]._id,
+        product: createdProducts[0]._id,
+        order: createdOrder._id,
+        rating: 5,
+        comment: 'Pizza rất ngon, phục vụ nhanh chóng!'
+      },
+      {
+        user: createdUsers[1]._id,
+        product: createdProducts[1]._id,
+        order: createdOrder._id,
+        rating: 4,
+        comment: 'Tốt, nhưng đóng gói có thể tốt hơn'
+      },
+      {
+        user: createdUsers[2]._id,
+        product: createdProducts[2]._id,
+        order: createdOrder._id,
+        rating: 5,
+        comment: 'Siêu ngon, sẽ mua lại!'
+      }
+    ];
+    await Review.insertMany(reviews);
+    console.log('⭐ Đã tạo reviews mẫu');
+
+    // Tạo employees mẫu
+    await Employee.insertMany(employees);
+    console.log('👔 Đã tạo employees mẫu');
 
     console.log('✅ Hoàn tất seed dữ liệu!');
     process.exit();
