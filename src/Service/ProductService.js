@@ -58,13 +58,10 @@ class ProductService {
     const { name, image, type, price, description, rating } = newProduct; 
 
     if (!name || !image || !type || !price) {
-            // ... (xử lý lỗi)
     }
     
     const checkProduct = await Product.findOne({ name });
-        // ... (check trùng tên)
 
-        // ✅ BƯỚC QUAN TRỌNG: TÌM CATEGORY ID DỰA TRÊN TÊN (type)
         const categoryDoc = await Category.findOne({ name: type });
         const categoryId = categoryDoc ? categoryDoc._id : null;
         
@@ -100,7 +97,6 @@ class ProductService {
       }
     }
         
-        // ✅ XỬ LÝ UPDATE CATEGORY: Nếu có trường 'type' (tên category)
         const updateInfo = { ...info };
         if (updateInfo.type) {
             const categoryDoc = await Category.findOne({ name: updateInfo.type });

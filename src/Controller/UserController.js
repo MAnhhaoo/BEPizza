@@ -37,7 +37,6 @@ class UserController {
                 return res.status(400).json({ message: "Vui lòng điền đầy đủ trường dữ liệu" });
             }
             
-            // ✅ GỌI SERVICE
             const result = await userServiceInstance.loginUser(req.body);
             
             if (result.status === 'error') {

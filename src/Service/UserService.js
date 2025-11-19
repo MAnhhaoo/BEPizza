@@ -1,9 +1,8 @@
 const bcrypt = require('bcrypt');
-const User = require('../models/UserModels'); // ✅ Phải import Model ở đây
-const { Access_token } = require('./JwtService'); // ✅ Phải import JwtService
+const User = require('../models/UserModels'); 
+const { Access_token } = require('./JwtService'); 
 
 class UserService {
-    // 1. Đăng ký người dùng
     async createUser(newUser) {
         const { email, password } = newUser;
 
@@ -32,10 +31,7 @@ class UserService {
         };
     }
 
-    // 2. Đăng nhập người dùng
-   // ... (các đoạn code khác)
 
-// 2. Đăng nhập người dùng
 async loginUser(logindata) {
     const { email, password } = logindata;
     const user = await User.findOne({ email: email });
@@ -44,16 +40,12 @@ async loginUser(logindata) {
         return { status: "error", message: "Email không tồn tại!" };
     }
 
-    // 🛑 BỔ SUNG: Kiểm tra trạng thái bị khóa
     if (user.isBlocked) {
         return { 
             status: "error", 
             message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên." 
         };
     }
-    // 🛑 KẾT THÚC BỔ SUNG
-
-    // LƯU Ý: bcrypt.compare là hàm async, nên dùng await
     const isPass = await bcrypt.compare(password, user.password); 
     if (!isPass) {
         return { status: "error", message: "Sai mật khẩu!" };
@@ -80,16 +72,13 @@ async loginUser(logindata) {
     };
 }
 
-// ... (các đoạn code khác)
 
-    // 3. Cập nhật thông tin người dùng
     async updateUser(id, Data) {
         const CheckUser = await User.findById(id);
         if (!CheckUser) {
             return { status: "error", message: "Không tìm thấy người dùng" };
         }
         
-        // Kiểm tra và mã hóa mật khẩu nếu có thay đổi
         if (Data.password) {
             Data.password = bcrypt.hashSync(Data.password, 10);
         }
@@ -106,7 +95,6 @@ async loginUser(logindata) {
         };
     }
 
-    // 4. Lấy thông tin người dùng bằng ID
     async getUser(id) {
         const checkUser = await User.findOne({ _id: id });
         if (!checkUser) {
@@ -119,7 +107,6 @@ async loginUser(logindata) {
         };
     }
 
-    // 5. Lấy tất cả người dùng (có tìm kiếm)
     async getAlluser(search = '') {
         let findQuery = {};
         
@@ -142,14 +129,12 @@ async loginUser(logindata) {
         };
     }
 
-    // 6. Xóa người dùng
     async deleteUser(id) {
         const Ktr = await User.findById(id);
         if (!Ktr) {
             return { status: "error", message: "Không tìm thấy người dùng để xóa" };
         }
         
-        // SỬA: Xóa bằng ID
         const deletedUser = await User.findByIdAndDelete(id); 
 
         return {
@@ -159,14 +144,12 @@ async loginUser(logindata) {
         };
     }
 
-    // 7. Cập nhật trạng thái Block
     async updateUserStatus(userId, isBlocked) {
         const user = await User.findById(userId);
         if (!user) {
             return { status: "error", message: "Không tìm thấy người dùng" };
         }
 
-        // 🛑 Ngăn chặn thao tác nếu là Admin
         if (user.isAdmin) {
              return { status: "error", message: "Không thể Khóa/Mở khóa tài khoản Quản trị viên!" };
         }

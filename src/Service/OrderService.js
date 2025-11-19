@@ -163,7 +163,6 @@ async updateOrderStatus(id, status, io) {
                 return { status: 403, message: "Bạn không có quyền đánh giá đơn hàng này." };
             }
 
-            // 2. Kiểm tra sản phẩm có trong đơn hàng không
             const itemIndex = order.orderItems.findIndex(item => item.product.toString() === productId.toString());
 
             if (itemIndex === -1) {
@@ -173,7 +172,6 @@ async updateOrderStatus(id, status, io) {
                 return { status: 400, message: "Sản phẩm này đã được đánh giá cho đơn hàng này rồi." };
             }
             
-            // 3. Tạo Review mới
             const review = new Review({
                 user: userId,
                 product: productId,
@@ -184,15 +182,10 @@ async updateOrderStatus(id, status, io) {
 
             await review.save();
 
-            // 4. Cập nhật isReviewed trong orderItems
             order.orderItems[itemIndex].isReviewed = true;
             await order.save();
             
-            // 5. Cập nhật rating trung bình và số lượng review cho Product (TÙY CHỌN, CẦN Product Model)
-            /* if (Product) {
-                // Logic cập nhật product rating (Sử dụng $inc, $avg)
-            }
-            */
+           
 
             return { 
                 status: 201, 

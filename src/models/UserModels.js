@@ -14,7 +14,5 @@ const userSchema = new mongoose.Schema(
         timestamps : true
     }
 );
-// dùng để thao tác với MongoDB
 const User = mongoose.model("User" , userSchema);
-// xuất file đi mọi nơi 
 module.exports = User

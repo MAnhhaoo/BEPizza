@@ -1,6 +1,6 @@
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs"); // Cần thiết để kiểm tra/tạo thư mục
+const fs = require("fs"); 
 
 // 1. Xác định đường dẫn tuyệt đối đến thư mục 'uploads'
 // process.cwd() trả về đường dẫn thư mục mà bạn đang chạy lệnh node/npm từ đó (thường là thư mục gốc của dự án).

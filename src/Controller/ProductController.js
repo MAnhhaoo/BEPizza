@@ -13,7 +13,6 @@ class ProductController {
             limit = Number(limit) || 10;
             page = Number(page) || 0;
 
-            // 👉 Parse sort và filter nếu có
             if (filter) {
                 try {
                     filter = JSON.parse(filter);

@@ -1,4 +1,3 @@
-// File: backend/models/OrderModel.js
 
 const mongoose = require("mongoose");
 

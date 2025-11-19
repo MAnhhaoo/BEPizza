@@ -40,7 +40,6 @@ class EmployeeService {
     
             return newEmp.toObject();
         } catch (error) {
-            // Xử lý lỗi Mongoose Validation hoặc Unique Index
             if (error.name === 'MongoServerError' && error.code === 11000) {
                 const field = Object.keys(error.keyPattern)[0];
                 throw new Error(`Giá trị '${data[field]}' cho trường ${field} đã tồn tại hoặc không hợp lệ.`);
