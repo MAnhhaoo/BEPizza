@@ -85,7 +85,6 @@ class OrderService {
             return { status: 400, message: "Trạng thái không hợp lệ" };
         }
 
-        // ⭐ THÊM: Kiểm tra trạng thái final - không cho update
         const finalStatuses = ["Giao thành công", "Giao thất bại", "Hủy đơn"];
         const order = await Order.findById(id).populate("user", "_id");
         if (!order) return { status: 404, message: "Không tìm thấy đơn hàng" };
@@ -97,11 +96,9 @@ class OrderService {
             };
         }
 
-        // 1. Cập nhật trạng thái và lưu DB
         order.status = status;
         await order.save();
 
-        // 2. 📢 Gửi thông báo Socket.io
         if (io && order.user && order.user._id) {
             const customerId = order.user._id.toString();
             const notificationData = {
@@ -197,7 +194,7 @@ class OrderService {
             };
         } catch (error) {
             console.error("LỖI KHI TẠO ĐÁNH GIÁ:", error);
-            if (error.code === 11000) { // Duplicate key error (đã đánh giá rồi theo index)
+            if (error.code === 11000) { 
                  return { status: 400, message: "Sản phẩm đã được đánh giá cho đơn hàng này." };
             }
             return { status: 500, message: "Lỗi máy chủ nội bộ không xác định." };

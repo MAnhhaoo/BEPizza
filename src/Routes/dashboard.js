@@ -4,4 +4,4 @@ const DashboardController = require("../Controller/DashboardController");
 
 router.get("/das", DashboardController.getDashboard.bind(DashboardController));
 
-module.exports = router; // bắt buộc export router
+module.exports = router; 

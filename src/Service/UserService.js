@@ -66,7 +66,6 @@ async loginUser(logindata) {
             email: user.email,
             name: user.name,
             isAdmin: user.isAdmin,
-            // Thêm isBlocked vào response (tùy chọn)
             isBlocked: user.isBlocked 
         }
     };
@@ -170,4 +169,4 @@ async loginUser(logindata) {
     }
 }
 
-module.exports = UserService; // ✅ Export Class
+module.exports = UserService; 

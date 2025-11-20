@@ -1,5 +1,5 @@
 const Product = require("../models/ProductModel"); 
-const Category = require("../models/CategoryModel"); // ✅ IMPORT CATEGORY MODEL
+const Category = require("../models/CategoryModel"); 
 
 class ProductService {
   
@@ -19,7 +19,6 @@ class ProductService {
                 if (categoryDoc) {
                     findQuery = { category: categoryDoc._id };
                 } else {
-                    // Nếu tên category không tồn tại, trả về kết quả rỗng
                     findQuery = { category: null }; 
                 }
       }
