@@ -70,6 +70,7 @@ class OrderController {
             const result = await this.orderService.deleteOrder(id);
             return res.status(result.status).json(result);
         } catch (error) {
+            
             console.error(error);
             return res.status(500).json({ message: "Lỗi server" });
         }

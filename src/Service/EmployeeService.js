@@ -57,7 +57,7 @@ class EmployeeService {
         }
         
         const updateData = { ...data };
-        delete updateData.employeeCode; // Không cho phép update employeeCode
+        delete updateData.employeeCode; 
         
         try {
             const updated = await Employee.findByIdAndUpdate(

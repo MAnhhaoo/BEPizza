@@ -78,43 +78,48 @@ class OrderService {
     }
 
 
-async updateOrderStatus(id, status, io) {
-        try {
-            const validStatuses = ["Chờ xác nhận", "Đã xác nhận", "Đang giao", "Giao thành công", "Giao thất bại", "Hủy đơn"];
-            if (!validStatuses.includes(status)) {
-                return { status: 400, message: "Trạng thái không hợp lệ" };
-            }
-
-            const updatedOrder = await Order.findByIdAndUpdate(
-                id,
-                { status: status },
-                { new: true } // Trả về document đã cập nhật
-            ).populate("user", "_id");
-
-            if (!updatedOrder) return { status: 404, message: "Không tìm thấy đơn hàng" };
-
-            //  GỬI THÔNG BÁO SOCKET.IO ĐẾN ROOM CỤ THỂ
-            if (io && updatedOrder.user && updatedOrder.user._id) {
-                const customerId = updatedOrder.user._id.toString();
-                const roomName = `customer_${customerId}`; 
-                
-                const notificationData = {
-                    orderId: updatedOrder._id.toString(),
-                    userId: customerId, 
-                    status: status,
-                };
-                
-                io.to(roomName).emit('customerNotify', notificationData); 
-                console.log(`[Socket.io] Đơn hàng ${updatedOrder._id} cập nhật thành: ${status}. Gửi tới Room: ${roomName}`);
-            }
-            
-            return { status: 200, message: "Cập nhật trạng thái đơn hàng thành công", data: updatedOrder };
-        } catch (error) {
-            console.error("LỖI KHI CẬP NHẬT ĐƠN HÀNG:", error);
-            // Bạn có thể thêm xử lý lỗi Validation Mongoose nếu muốn
-            return { status: 500, message: "Lỗi khi cập nhật đơn hàng" };
+   async updateOrderStatus(id, status, io) {
+    try {
+        const validStatuses = ["Chờ xác nhận", "Đã xác nhận", "Đang giao", "Giao thành công", "Giao thất bại", "Hủy đơn"];
+        if (!validStatuses.includes(status)) {
+            return { status: 400, message: "Trạng thái không hợp lệ" };
         }
+
+        // ⭐ THÊM: Kiểm tra trạng thái final - không cho update
+        const finalStatuses = ["Giao thành công", "Giao thất bại", "Hủy đơn"];
+        const order = await Order.findById(id).populate("user", "_id");
+        if (!order) return { status: 404, message: "Không tìm thấy đơn hàng" };
+        
+        if (finalStatuses.includes(order.status)) {
+            return { 
+                status: 400, 
+                message: `Không thể cập nhật đơn hàng ở trạng thái "${order.status}". Đơn hàng đã hoàn tất!` 
+            };
+        }
+
+        // 1. Cập nhật trạng thái và lưu DB
+        order.status = status;
+        await order.save();
+
+        // 2. 📢 Gửi thông báo Socket.io
+        if (io && order.user && order.user._id) {
+            const customerId = order.user._id.toString();
+            const notificationData = {
+                orderId: order._id.toString(),
+                userId: customerId,
+                status: status,
+                message: `Đơn hàng của bạn đã được cập nhật thành: ${status}`
+            };
+            io.to(`customer_${customerId}`).emit('customerNotify', notificationData);
+            console.log(`[Socket.io] Đã gửi thông báo đến ROOM ID: ${customerId}. Đơn hàng ${order._id} cập nhật thành: ${status}.`);
+        }
+
+        return { status: 200, message: "Cập nhật trạng thái đơn hàng thành công", data: order };
+    } catch (error) {
+        console.error("LỖI KHI CẬP NHẬT ĐƠN HÀNG:", error);
+        return { status: 500, message: "Lỗi khi cập nhật đơn hàng" };
     }
+}
 
     async deleteOrder(id) {
         try {
@@ -150,7 +155,6 @@ async updateOrderStatus(id, status, io) {
 
     async createReview({ orderId, productId, userId, rating, comment }) {
         try {
-            // 1. Kiểm tra đơn hàng tồn tại và trạng thái
             const order = await Order.findById(orderId).select('status orderItems user');
             
             if (!order) {
@@ -185,8 +189,7 @@ async updateOrderStatus(id, status, io) {
             order.orderItems[itemIndex].isReviewed = true;
             await order.save();
             
-           
-
+            
             return { 
                 status: 201, 
                 message: "Đánh giá sản phẩm thành công.", 

@@ -31,19 +31,16 @@ const io = new Server(httpServer, {
 // Lưu io vào app để controller/service có thể truy cập bằng req.app.get('io')
 app.set('io', io);
 
-// Thay đổi tên sự kiện từ 'join' thành 'join_customer_room'
 io.on('connection', (socket) => {
     console.log('🔌 Socket connected:', socket.id);
 
-    // ⭐ SỬA: Dùng tên sự kiện 'join_customer_room' và tên Room 'customer_{userId}'
     socket.on('join_customer_room', (userId) => { 
-        if (!userId) return;
-        const room = `customer_${userId}`; // Đổi tên Room cho rõ ràng
-        socket.join(room);
-        console.log(`Socket ${socket.id} joined room ${room}`);
-    });
+        if (!userId) return;
+        const room = `customer_${userId}`;
+        socket.join(room);
+        console.log(`Socket ${socket.id} joined room ${room}`);
+    });
     
-    // ⭐ CẦN THÊM: Sự kiện rời Room (leave_customer_room)
     socket.on('leave_customer_room', (userId) => {
         if (!userId) return;
         const room = `customer_${userId}`;
@@ -51,10 +48,23 @@ io.on('connection', (socket) => {
         console.log(`Socket ${socket.id} left room ${room}`);
     });
 
-    socket.on('disconnect', () => {
-        console.log('🔌 Socket disconnected:', socket.id);
-    });
+    // ⭐ THÊM DÒNG NÀY:
+    socket.on('notify_customer', (data) => {
+    const { userId, orderId, status } = data;
+    console.log(`📤 Admin gửi sự kiện cập nhật đơn hàng #${orderId} đến khách hàng ${userId}`);
+    io.to(`customer_${userId}`).emit('customerNotify', {
+        orderId,
+        status,
+        userId,
+        timestamp: new Date()
+    });
+}); 
+
+    socket.on('disconnect', () => {
+        console.log('🔌 Socket disconnected:', socket.id);
+    });
 });
+
 
 // Kết nối mongoose
 mongoose.connect(`${process.env.MONGO_DB}`).then(()=>{
