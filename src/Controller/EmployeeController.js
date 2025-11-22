@@ -1,7 +1,6 @@
 const EmployeeService = require('../Service/EmployeeService');
 
 class EmployeeController {
-    // ... (các hàm không thay đổi, giữ nguyên như code gốc của bạn) ...
     async getEmployees(req, res) {
         try {
             const employees = await EmployeeService.getAllEmployees();

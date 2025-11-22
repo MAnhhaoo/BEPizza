@@ -1,5 +1,4 @@
-const UserService = require('../Service/UserService'); // Import Service Class
-// Khởi tạo instance của Service cho Controller
+const UserService = require('../Service/UserService'); 
 const userServiceInstance = new UserService(); 
 
 // Controller
@@ -20,10 +19,10 @@ class UserController {
             const result = await userServiceInstance.createUser(req.body); 
 
             if (result.status === 'error') {
-                return res.status(409).json({ message: result.message }); // 409 Conflict cho lỗi đã tồn tại
+                return res.status(409).json({ message: result.message }); 
             }
 
-            return res.status(201).json(result); // 201 Created
+            return res.status(201).json(result); 
         } catch (error) {
             console.error("Lỗi Controller Đăng ký:", error);
             return res.status(500).json({ message: error.message || "Lỗi server" });
@@ -127,7 +126,7 @@ class UserController {
             const result = await userServiceInstance.updateUserStatus(userId, isBlocked);
             
             if (result.status === 'error') {
-                return res.status(403).json({ message: result.message }); // 403 Forbidden
+                return res.status(403).json({ message: result.message }); 
             }
 
             return res.status(200).json(result);
